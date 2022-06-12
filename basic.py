@@ -9,10 +9,10 @@ from attack import SIA
 
 if __name__ == '__main__':
     CNT = 10
-    BS = 160
+    BS = 16
 
     dm = ImageNetDataModule(root_dir='./data/imagenet/data', class_index_file='./data/imagenet/class_index.json')
-    data_loader = dm.get_data_loader(batch_size=BS, shuffle=False)
+    data_loader = dm.get_data_loader(batch_size=BS, shuffle=True)
     model = ResNet18()
     model.eval()
     model.hook_middle_representation()
@@ -23,8 +23,9 @@ if __name__ == '__main__':
     tags = []
 
     for images, labels in tqdm(data_loader):
-        adv_images = atk(images, labels)
-        outputs = model(adv_images)
+        # adv_images = atk(images, labels)
+        # outputs = model(adv_images)
+        outputs = model(images)
 
         _, pre = torch.max(outputs.data, 1)
 
