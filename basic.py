@@ -3,7 +3,7 @@ import torch
 from tqdm import tqdm
 
 from data import ImageNetDataModule
-from models import ResNet18
+from models import ResNet50
 from attack import SIA
 
 
@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     dm = ImageNetDataModule(root_dir='./data/imagenet/data', class_index_file='./data/imagenet/class_index.json')
     data_loader = dm.get_data_loader(batch_size=BS, shuffle=True)
-    model = ResNet18()
+    model = ResNet50()
     model.eval()
     model.hook_middle_representation()
     atk = SIA(model, eps=8/255, alpha=2/225, steps=200, gamma=64, random_start=True)
