@@ -1,6 +1,7 @@
 import torch
 from torch import nn
-from torchvision import models
+# from torchvision import models
+import timm
 
 from data import ImageNetDataModule
 
@@ -29,7 +30,8 @@ class ResNet50(nn.Module):
 
         self.model = nn.Sequential(
             norm_layer,
-            models.resnet50(pretrained=True)
+            # models.resnet50(pretrained=True)
+            timm.create_model('resnet50', pretrained=True)
         ).to(self.device)
         self.features = {}
 
@@ -39,7 +41,7 @@ class ResNet50(nn.Module):
                 self.features[name] = output
             return hook
 
-        self.model[1].avgpool.register_forward_hook(get_features('feats_plr'))
+        self.model[1].global_pool.register_forward_hook(get_features('feats_plr'))
         # self.model[1].layer4.register_forward_hook(get_features('feats_4'))
         # self.model[1].layer3.register_forward_hook(get_features('feats_3'))
         # self.model[1].layer2.register_forward_hook(get_features('feats_2'))
