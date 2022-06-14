@@ -1,5 +1,7 @@
 # ImageNet Data Module
 
+https://huggingface.co/datasets/imagenet-1k
+
 ## Structure
 
 Place ImageNet Data to `data` directory, each subdirectory contains pictures in the same class.

@@ -6,8 +6,6 @@ import torch
 import torchvision.datasets as dsets
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-from timm.data import resolve_data_config
-from timm.data.transforms_factory import create_transform
 
 
 class ImageSubFolder(dsets.ImageFolder):
@@ -49,21 +47,19 @@ class ImageNetDataModule:
         self.label2idx = json.load(open(class_index_file))
         self.idx2label = [self.label2idx[str(k)][1] for k in range(len(self.label2idx))]
         model = timm.create_model('resnet18', pretrained=True)
-        config = resolve_data_config({}, model=model)
-        transform = create_transform(**config)
-        # transform = transforms.Compose([
-        #     transforms.Resize((299, 299)),
-        #     transforms.ToTensor(),  # ToTensor : [0, 255] -> [0, 1]
-        #
-        #     # Using normalization for Inception v3.
-        #     # https://discuss.pytorch.org/t/how-to-preprocess-input-for-pre-trained-networks/683
-        #     #     transforms.Normalize(mean=[0.485, 0.456, 0.406],
-        #     #                          std=[0.229, 0.224, 0.225])
-        #
-        #     # However, DO NOT USE normalization transforms here.
-        #     # Torchattacks only supports images with a range between 0 and 1.
-        #     # Thus, please refer to the model construction section.
-        # ])
+        transform = transforms.Compose([
+            transforms.Resize((299, 299)),
+            transforms.ToTensor(),  # ToTensor : [0, 255] -> [0, 1]
+
+            # Using normalization for Inception v3.
+            # https://discuss.pytorch.org/t/how-to-preprocess-input-for-pre-trained-networks/683
+            #     transforms.Normalize(mean=[0.485, 0.456, 0.406],
+            #                          std=[0.229, 0.224, 0.225])
+
+            # However, DO NOT USE normalization transforms here.
+            # Torchattacks only supports images with a range between 0 and 1.
+            # Thus, please refer to the model construction section.
+        ])
         self.imagenet_data = image_folder_custom_label(
             root=root_dir,
             transform=transform,
@@ -78,7 +74,7 @@ class ImageNetDataModule:
         return self.label2idx
 
     def get_data_loader(self, batch_size: int, shuffle: bool = True) -> DataLoader:
-        return torch.utils.data.DataLoader(self.imagenet_data, batch_size=batch_size, shuffle=shuffle)
+        return torch.utils.data.DataLoader(self.imagenet_data, batch_size=batch_size, shuffle=shuffle, num_workers=16)
 
 
 if __name__ == '__main__':
