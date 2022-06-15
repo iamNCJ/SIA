@@ -26,7 +26,7 @@ class SIA(Attack):
     """
 
     def __init__(self, model, eps=0.3,
-                 alpha=2 / 255, steps=40, gamma=64, random_start=True, guide_samples: List = None):
+                 alpha=2 / 255, steps=40, gamma=64, random_start=True, guide_samples: List = None, use_layers: List = None):
         super().__init__("attack", model)
         self.eps = eps
         self.alpha = alpha
@@ -34,6 +34,7 @@ class SIA(Attack):
         self.random_start = random_start
         self.gamma = gamma
         self.guide_samples = guide_samples
+        self.use_layers = use_layers
         self._supported_mode = ['default', 'targeted']
 
     def forward(self, images, labels):
@@ -56,7 +57,7 @@ class SIA(Attack):
         guide_feats = []
         for x_g in natural_images:
             _ = self.model(x_g)
-            guide_feats.append(self.model.features)
+            guide_feats.append(self.model.features.copy())  # Deep copy!
 
         if self.random_start:
             # Starting at a uniformly random point
@@ -76,10 +77,19 @@ class SIA(Attack):
 
             # Calculate statistical loss
             statistical_loss = torch.tensor(0.).to(self.model.device)
-            for guide_feat in guide_feats:
-                for k, v in guide_feat.items():
-                    statistical_loss += mmd_loss(torch.flatten(adv_feat[k], start_dim=1), torch.flatten(v, start_dim=1))
+            # Default, use all hooked layers
+            if self.use_layers is None:
+                for guide_feat in guide_feats:
+                    for k, v in guide_feat.items():
+                        statistical_loss += mmd_loss(torch.flatten(adv_feat[k], start_dim=1), torch.flatten(v, start_dim=1))
+            else: # Use only layers specified
+                for guide_feat in guide_feats:
+                    for k in self.use_layers:
+                        statistical_loss += mmd_loss(torch.flatten(adv_feat[k], start_dim=1), torch.flatten(guide_feat[k], start_dim=1))
             statistical_loss /= len(guide_feats)
+
+            # print('statistical loss', statistical_loss)
+            # print('perturbation loss ', cost)
 
             cost -= self.gamma * statistical_loss
 
@@ -90,5 +100,7 @@ class SIA(Attack):
             adv_images = adv_images.detach() + self.alpha * grad.sign()
             delta = torch.clamp(adv_images - images, min=-self.eps, max=self.eps)
             adv_images = torch.clamp(images + delta, min=0, max=1).detach()
+
+        del guide_feats
 
         return adv_images

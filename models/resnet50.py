@@ -41,12 +41,11 @@ class ResNet50(nn.Module):
                 self.features[name] = output
             return hook
 
-        self.model[1].global_pool.register_forward_hook(get_features('feats_plr'))
-        # self.model[1].layer4.register_forward_hook(get_features('feats_4'))
-        # self.model[1].layer3.register_forward_hook(get_features('feats_3'))
-        # self.model[1].layer2.register_forward_hook(get_features('feats_2'))
-        # self.model[1].layer1.register_forward_hook(get_features('feats_1'))
-        # self.model[1].conv1.register_forward_hook(get_features('feats_0'))
+        self.model[1].layer4.register_forward_hook(get_features('feats_plr'))
+        self.model[1].layer3.register_forward_hook(get_features('feats_3'))
+        self.model[1].layer2.register_forward_hook(get_features('feats_2'))
+        self.model[1].layer1.register_forward_hook(get_features('feats_1'))
+        self.model[1].conv1.register_forward_hook(get_features('feats_0'))
 
     def forward(self, x):
         return self.model(x.to(self.device))
