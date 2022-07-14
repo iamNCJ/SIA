@@ -56,8 +56,13 @@ class SIA(Attack):
         natural_images = self.guide_samples if self.guide_samples else [images.clone().detach()]
         guide_feats = []
         for x_g in natural_images:
+            # print(torch.mean(x_g))
             _ = self.model(x_g)
-            guide_feats.append(self.model.features.copy())  # Deep copy!
+            last_natural_feat = {}
+            for k, v in self.model.features.items():
+                last_natural_feat[k] = v.detach()
+                # print(k, torch.mean(v))
+            guide_feats.append(last_natural_feat)  # Deep copy!
 
         if self.random_start:
             # Starting at a uniformly random point
@@ -69,11 +74,14 @@ class SIA(Attack):
             outputs = self.model(adv_images)
             adv_feat = self.model.features
 
+            # print(outputs)
+
             # Calculate perturbation loss
             if self._targeted:
                 cost = -loss(outputs, target_labels)
             else:
                 cost = loss(outputs, labels)
+            # print('perturbation loss', cost)
 
             # Calculate statistical loss
             statistical_loss = torch.tensor(0.).to(self.model.device)
@@ -89,9 +97,9 @@ class SIA(Attack):
             statistical_loss /= len(guide_feats)
 
             # print('statistical loss', statistical_loss)
-            # print('perturbation loss ', cost)
 
             cost -= self.gamma * statistical_loss
+            # print('overall loss', cost)
 
             # Update adversarial images
             grad = torch.autograd.grad(cost, adv_images,

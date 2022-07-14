@@ -48,7 +48,7 @@ class ImageNetDataModule:
         self.idx2label = [self.label2idx[str(k)][1] for k in range(len(self.label2idx))]
         model = timm.create_model('resnet18', pretrained=True)
         transform = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((299, 299)),
             transforms.ToTensor(),  # ToTensor : [0, 255] -> [0, 1]
 
             # Using normalization for Inception v3.

@@ -8,8 +8,8 @@ from attack import SIA
 
 
 if __name__ == '__main__':
-    CNT = 10
-    BS = 16
+    CNT = 50
+    BS = 32
 
     dm = ImageNetDataModule(root_dir='./data/imagenet/data', class_index_file='./data/imagenet/class_index.json')
     data_loader = dm.get_data_loader(batch_size=BS, shuffle=True)
